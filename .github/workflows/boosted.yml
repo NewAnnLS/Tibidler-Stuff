@@ -19,7 +19,7 @@ jobs:
           node-version: "20"
 
       - name: Generate boosted.json
-        run: node generate-boosted.js
+        run: node script/generate-booster.js
 
       - name: Commit changes
         run: |
