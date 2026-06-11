@@ -1,4 +1,4 @@
-<h1 align="center">Tibilder personal tools</h1>
+<h1 align="center">Tibidler personal tools</h1>
 
 <p align="center">
  	<a href="https://newannls.github.io/Tibidler-Stuff/" target="_blank" rel="noopener noreferrer">
@@ -6,8 +6,8 @@
  	</a>
 </p>
 
-<p align="center">Some stuff</p>
+<p align="center">Click the book yo</p>
 
 ## Disclaimer
 
-<p align="center"><em>Disclaimer: the entire project was created using AI agents while watching anime. You don't like it, don't use it o7</em></p>
+<p align="center"><em>The entire thing was made using AI agents while watching anime. You don't like it, don't use it o7</em></p>
