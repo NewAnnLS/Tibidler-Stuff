@@ -19,6 +19,7 @@
     }
     * { box-sizing: border-box; }
     body {
+      overflow-x: hidden;
       margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: radial-gradient(circle at 50% -12%,rgba(56,189,248,.16),transparent 34rem),
@@ -56,13 +57,14 @@
     }
     .layout {
       display: grid;
-      grid-template-columns: 280px minmax(0, 1fr) 340px;
+      grid-template-columns: 320px minmax(0, 1fr) 340px;
       gap: 16px;
       padding: 16px 24px 24px;
+      align-items: start;
     }
     @media (max-width: 1100px) {
       .layout {
-        grid-template-columns: 260px minmax(0, 1fr);
+        grid-template-columns: 300px minmax(0, 1fr);
       }
       .details {
         grid-column: 1 / -1;
@@ -89,7 +91,24 @@
       border: 1px solid var(--border);
       padding: 14px 14px 10px;
       box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+      /* keep panels within viewport and enable internal scrolling */
+      max-height: calc(100vh - 120px);
+      overflow-y: auto;
+      overflow-x: hidden;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.06) transparent;
     }
+
+    /* Chromium scrollbar tweaks */
+    .panel::-webkit-scrollbar { width: 10px; height: 10px; }
+    .panel::-webkit-scrollbar-track { background: transparent; }
+    .panel::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.05);
+      border-radius: 999px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+    .panel::-webkit-scrollbar-thumb:hover { background: rgba(56,189,248,0.18); }
     .filters h2,
     .details h2 {
       margin: 0 0 10px;
@@ -125,11 +144,25 @@
       border-color: var(--accent);
       box-shadow: 0 0 0 1px var(--accent-soft);
     }
+    /* Custom select arrow and spacing */
+    select {
+      -webkit-appearance: none;
+      appearance: none;
+      padding-right: 36px;
+      background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+      background-position: calc(100% - 16px) calc(50% - 3px), calc(100% - 11px) calc(50% - 3px);
+      background-size: 6px 6px, 6px 6px;
+      background-repeat: no-repeat;
+    }
     .vocations {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
     }
+    .filters-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
+    .filters-actions { display:flex; gap:8px; align-items:center; }
+    .clear-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 6px 10px; border-radius: 999px; cursor:pointer; }
+    .clear-btn:hover { border-color: var(--accent); color: var(--accent); }
     .chip {
       border-radius: 999px;
       border: 1px solid var(--border);
@@ -141,6 +174,7 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
+      transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
     }
     .chip.active {
       border-color: var(--accent);
@@ -165,6 +199,7 @@
       max-height: calc(100vh - 170px);
       overflow: auto;
       padding-right: 4px;
+      padding-top: 8px; /* push results slightly down so hover effects don't clip */
     }
     .item-card {
       background: var(--card);
@@ -176,6 +211,7 @@
       gap: 8px;
       cursor: pointer;
       transition: border-color 0.12s ease, transform 0.08s ease, box-shadow 0.12s ease;
+      min-height: 96px; /* fixed-ish size so hover highlight doesn't look uneven */
     }
     .item-card:hover {
       border-color: var(--accent);
@@ -224,15 +260,53 @@
     }
     .pill {
       border-radius: 999px;
-      padding: 1px 7px;
+      padding: 4px 10px;
       border: 1px solid var(--border);
       background: #020617;
+      min-width: 52px;
+      text-align: center;
+      display: inline-block;
     }
     .pill-accent {
       border-color: var(--accent);
       color: var(--accent);
       background: var(--accent-soft);
     }
+
+    /* vocation pill base + colors */
+    .voc-pill {
+      color: var(--muted);
+      border: 1px solid var(--border);
+      background: transparent;
+      padding: 4px 10px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+    .voc-pill.knight {
+      border-color: rgba(255,122,89,0.42);
+      color: #ff8b6a;
+      background: linear-gradient(90deg, rgba(255,122,89,0.12), rgba(255,184,107,0.06));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+    }
+    .voc-pill.sorcerer {
+      border-color: rgba(56,189,248,0.42);
+      color: #7ee7ff;
+      background: linear-gradient(90deg, rgba(96,165,250,0.12), rgba(56,189,248,0.06));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+    }
+    .voc-pill.druid {
+      border-color: rgba(16,185,129,0.42);
+      color: #6ef2b8;
+      background: linear-gradient(90deg, rgba(34,211,153,0.12), rgba(16,185,129,0.06));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+    }
+    .voc-pill.paladin {
+      border-color: rgba(245,158,11,0.42);
+      color: #ffd47a;
+      background: linear-gradient(90deg, rgba(246,224,94,0.12), rgba(245,158,11,0.06));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+    }
+    .voc-pill:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,0.32); }
     .details-body {
       font-size: 13px;
       display: flex;
@@ -288,16 +362,25 @@
     }
     .stat {
       background: #020617;
-      border-radius: 6px;
+      border-radius: 999px; /* rounder, pill-like */
       border: 1px solid var(--border);
-      padding: 4px 6px;
+      padding: 8px 12px;
       font-size: 12px;
       display: flex;
-      justify-content: space-between;
-      gap: 6px;
+      align-items: center;
+      gap: 10px;
     }
     .stat span:first-child {
       color: var(--muted);
+      flex: 1 1 auto;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .stat span:last-child {
+      flex: 0 0 auto;
+      margin-left: 6px;
+      white-space: nowrap;
     }
     .drops-list {
       display: flex;
@@ -307,9 +390,10 @@
     }
     .drop {
       background: #020617;
-      border-radius: 6px;
+      border-radius: 999px;
       border: 1px solid var(--border);
-      padding: 4px 6px;
+      padding: 8px 12px; /* more breathing room so text doesn't touch the wall */
+      display: block;
     }
     a {
       color: var(--accent);
@@ -324,26 +408,50 @@
       font-style: italic;
     }
     .level-range input {
-      width: 80px;
-      padding: 4px 8px;
+      width: 96px;
+      padding: 8px 14px;
       font-size: 12px;
+      border-radius: 999px;
     }
+    .level-range { display:flex; gap:8px; align-items:center; justify-content:center; }
+    .level-sep { color: var(--muted); font-size: 14px; padding: 0 4px; }
     .stat-group {
-      margin-bottom: 12px;
+      margin-bottom: 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      background: transparent;
     }
-    
+
     .stat-group strong {
       font-size: 12px;
       color: var(--muted);
       display: block;
       margin-bottom: 4px;
     }
+
+    /* Accordion styles for stat groups */
+    .stat-group-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      cursor: pointer;
+      padding: 8px 10px;
+      background: rgba(2,6,23,0.2);
+    }
+    .stat-group-header:focus { outline: none; border-color: rgba(56,189,248,0.12); }
+    .stat-group-header strong { margin: 0; font-size: 12px; color: var(--muted); }
+    .stat-group .chev { transition: transform 0.18s ease; color: var(--muted); }
+    .stat-group-content { overflow: hidden; transition: max-height 0.22s ease, padding 0.18s ease, opacity 0.12s ease; max-height: 1000px; padding: 8px; opacity:1; }
+    .stat-group.collapsed .stat-group-content { max-height: 0; padding: 0 8px; opacity: 0; pointer-events: none; }
+    .stat-group.collapsed .chev { transform: rotate(-90deg); }
     
     .stat-box {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      padding-left: 4px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+      padding-left: 0px;
     }
     
     .stat-box label {
@@ -351,11 +459,63 @@
       color: var(--text);
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
+      background: #020617;
+      border-radius: 6px;
+      padding: 6px 8px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      word-break: break-word;
+      overflow-wrap: anywhere;
     }
     
     .stat-box input {
-      transform: scale(1.1);
+      transform: none;
+      width: 14px;
+      height: 14px;
+      appearance: none;
+      -webkit-appearance: none;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      background: #020617;
+      display: inline-block;
+      position: relative;
+    }
+
+    .stat-box input:checked {
+      background: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 6px 18px rgba(56,189,248,0.08) inset;
+    }
+
+    /* Right/details improvements */
+    .details {
+      position: sticky;
+      top: 72px;
+      align-self: start;
+    }
+
+    .filters, .results {
+      align-self: start;
+    }
+
+    .details-header {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .details .item-sprite img {
+      max-width: 64px;
+      max-height: 64px;
+      width: auto;
+      height: auto;
+    }
+
+    /* Make long labels / badges wrap instead of overflow */
+    .details-sub, .item-meta {
+      word-break: break-word;
     }
   </style>
 </head>
@@ -374,7 +534,12 @@
   <div class="layout">
     <!-- Filters -->
   <aside class="panel filters">
-    <h2>Filters</h2>
+    <div class="filters-head">
+      <h2>Filters</h2>
+      <div class="filters-actions">
+        <button id="clearFiltersBtn" class="clear-btn" title="Clear all filters">Clear</button>
+      </div>
+    </div>
   
     <!-- Search by name -->
     <div class="field">
@@ -405,9 +570,18 @@
     <!-- Level range -->
     <div class="field">
       <label>Level required</label>
-      <div class="level-range" style="display:flex; gap:6px;">
+      <div class="level-range">
         <input id="minLevel" type="number" min="0" step="1" placeholder="Min" />
+        <div class="level-sep">—</div>
         <input id="maxLevel" type="number" min="0" step="1" placeholder="Max" />
+      </div>
+      <div class="field" style="margin-top:8px;">
+        <label>Damage range</label>
+        <div class="level-range">
+          <input id="minDamageFilter" type="number" min="0" step="1" placeholder="Min" />
+          <div class="level-sep">—</div>
+          <input id="maxDamageFilter" type="number" min="0" step="1" placeholder="Max" />
+        </div>
       </div>
     </div>
   
@@ -416,85 +590,114 @@
       <label>Stats</label>
   
       <div class="stat-group">
-        <strong>Offensive</strong><br>
-        <div class="stat-box">
-          <label><input type="checkbox" class="statFilter" value="attack"> attack</label>
-          <label><input type="checkbox" class="statFilter" value="minDamage"> minDamage</label>
-          <label><input type="checkbox" class="statFilter" value="maxDamage"> maxDamage</label>
-          <label><input type="checkbox" class="statFilter" value="sword"> sword</label>
-          <label><input type="checkbox" class="statFilter" value="axe"> axe</label>
-          <label><input type="checkbox" class="statFilter" value="club"> club</label>
-          <label><input type="checkbox" class="statFilter" value="distance"> distance</label>
-          <label><input type="checkbox" class="statFilter" value="attackModifier"> attackModifier</label>
-          <label><input type="checkbox" class="statFilter" value="critChance"> critChance</label>
-          <label><input type="checkbox" class="statFilter" value="critDamage"> critDamage</label>
-          <label><input type="checkbox" class="statFilter" value="criticalChance"> criticalChance</label>
-          <label><input type="checkbox" class="statFilter" value="criticalDamage"> criticalDamage</label>
-          <label><input type="checkbox" class="statFilter" value="perfectShotDamage"> perfectShotDamage</label>
-          <label><input type="checkbox" class="statFilter" value="perfectShotRange"> perfectShotRange</label>
+        <div class="stat-group-header" tabindex="0" role="button" aria-expanded="true">
+          <strong>Offensive</strong>
+          <span class="chev" aria-hidden="true">▾</span>
+        </div>
+        <div class="stat-group-content">
+          <div class="stat-box">
+            <label><input type="checkbox" class="statFilter" value="attack"> attack</label>
+            <!-- minDamage/maxDamage moved to Damage range inputs above -->
+            <label><input type="checkbox" class="statFilter" value="sword"> sword</label>
+            <label><input type="checkbox" class="statFilter" value="axe"> axe</label>
+            <label><input type="checkbox" class="statFilter" value="club"> club</label>
+            <label><input type="checkbox" class="statFilter" value="distance"> distance</label>
+            <label><input type="checkbox" class="statFilter" value="attackModifier"> attackModifier</label>
+            <label><input type="checkbox" class="statFilter" value="critChance"> critChance</label>
+            <label><input type="checkbox" class="statFilter" value="critDamage"> critDamage</label>
+            <label><input type="checkbox" class="statFilter" value="criticalChance"> criticalChance</label>
+            <label><input type="checkbox" class="statFilter" value="criticalDamage"> criticalDamage</label>
+            <label><input type="checkbox" class="statFilter" value="perfectShotDamage"> perfectShotDamage</label>
+            <label><input type="checkbox" class="statFilter" value="perfectShotRange"> perfectShotRange</label>
+          </div>
         </div>
       </div>
   
       <div class="stat-group">
-        <strong>Defensive</strong><br>
-        <div class="stat-box">
-          <label><input type="checkbox" class="statFilter" value="defense"> defense</label>
-          <label><input type="checkbox" class="statFilter" value="armor"> armor</label>
-          <label><input type="checkbox" class="statFilter" value="shielding"> shielding</label>
-          <label><input type="checkbox" class="statFilter" value="hitChance"> hitChance</label>
-          <label><input type="checkbox" class="statFilter" value="hands"> hands</label>
+        <div class="stat-group-header" tabindex="0" role="button" aria-expanded="true">
+          <strong>Defensive</strong>
+          <span class="chev" aria-hidden="true">▾</span>
+        </div>
+        <div class="stat-group-content">
+          <div class="stat-box">
+            <label><input type="checkbox" class="statFilter" value="defense"> defense</label>
+            <label><input type="checkbox" class="statFilter" value="armor"> armor</label>
+            <label><input type="checkbox" class="statFilter" value="shielding"> shielding</label>
+            <label><input type="checkbox" class="statFilter" value="hitChance"> hitChance</label>
+            <label><input type="checkbox" class="statFilter" value="hands"> hands</label>
+          </div>
         </div>
       </div>
   
       <div class="stat-group">
-        <strong>Magic</strong><br>
-        <div class="stat-box">
-          <label><input type="checkbox" class="statFilter" value="magic"> magic</label>
-          <label><input type="checkbox" class="statFilter" value="holyMagic"> holyMagic</label>
-          <label><input type="checkbox" class="statFilter" value="fireMagic"> fireMagic</label>
-          <label><input type="checkbox" class="statFilter" value="iceMagic"> iceMagic</label>
-          <label><input type="checkbox" class="statFilter" value="earthMagic"> earthMagic</label>
-          <label><input type="checkbox" class="statFilter" value="energyMagic"> energyMagic</label>
-          <label><input type="checkbox" class="statFilter" value="deathMagic"> deathMagic</label>
-          <label><input type="checkbox" class="statFilter" value="healingMagic"> healingMagic</label>
+        <div class="stat-group-header" tabindex="0" role="button" aria-expanded="true">
+          <strong>Magic</strong>
+          <span class="chev" aria-hidden="true">▾</span>
+        </div>
+        <div class="stat-group-content">
+          <div class="stat-box">
+            <label><input type="checkbox" class="statFilter" value="magic"> magic</label>
+            <label><input type="checkbox" class="statFilter" value="holyMagic"> holyMagic</label>
+            <label><input type="checkbox" class="statFilter" value="fireMagic"> fireMagic</label>
+            <label><input type="checkbox" class="statFilter" value="iceMagic"> iceMagic</label>
+            <label><input type="checkbox" class="statFilter" value="earthMagic"> earthMagic</label>
+            <label><input type="checkbox" class="statFilter" value="energyMagic"> energyMagic</label>
+            <label><input type="checkbox" class="statFilter" value="deathMagic"> deathMagic</label>
+            <label><input type="checkbox" class="statFilter" value="healingMagic"> healingMagic</label>
+          </div>
         </div>
       </div>
   
       <div class="stat-group">
-        <strong>Elemental Protections</strong><br>
-        <div class="stat-box">
-          <label><input type="checkbox" class="statFilter" value="fireProtection"> fireProtection</label>
-          <label><input type="checkbox" class="statFilter" value="iceProtection"> iceProtection</label>
-          <label><input type="checkbox" class="statFilter" value="earthProtection"> earthProtection</label>
-          <label><input type="checkbox" class="statFilter" value="energyProtection"> energyProtection</label>
-          <label><input type="checkbox" class="statFilter" value="holyProtection"> holyProtection</label>
-          <label><input type="checkbox" class="statFilter" value="deathProtection"> deathProtection</label>
-          <label><input type="checkbox" class="statFilter" value="drownProtection"> drownProtection</label>
-          <label><input type="checkbox" class="statFilter" value="manaDrainProtection"> manaDrainProtection</label>
-          <label><input type="checkbox" class="statFilter" value="lifeDrainProtection"> lifeDrainProtection</label>
+        <div class="stat-group-header" tabindex="0" role="button" aria-expanded="true">
+          <strong>Elemental Protections</strong>
+          <span class="chev" aria-hidden="true">▾</span>
+        </div>
+        <div class="stat-group-content">
+          <div class="stat-box">
+            <label><input type="checkbox" class="statFilter" value="fireProtection"> fireProtection</label>
+            <label><input type="checkbox" class="statFilter" value="iceProtection"> iceProtection</label>
+            <label><input type="checkbox" class="statFilter" value="earthProtection"> earthProtection</label>
+            <label><input type="checkbox" class="statFilter" value="energyProtection"> energyProtection</label>
+            <label><input type="checkbox" class="statFilter" value="holyProtection"> holyProtection</label>
+            <label><input type="checkbox" class="statFilter" value="deathProtection"> deathProtection</label>
+            <label><input type="checkbox" class="statFilter" value="drownProtection"> drownProtection</label>
+            <label><input type="checkbox" class="statFilter" value="manaDrainProtection"> manaDrainProtection</label>
+            <label><input type="checkbox" class="statFilter" value="lifeDrainProtection"> lifeDrainProtection</label>
+          </div>
         </div>
       </div>
   
       <div class="stat-group">
-        <strong>Elemental Damage</strong><br>
-        <div class="stat-box">
-          <label><input type="checkbox" class="statFilter" value="fireDamage"> fireDamage</label>
-          <label><input type="checkbox" class="statFilter" value="iceDamage"> iceDamage</label>
-          <label><input type="checkbox" class="statFilter" value="earthDamage"> earthDamage</label>
-          <label><input type="checkbox" class="statFilter" value="holyDamage"> holyDamage</label>
-          <label><input type="checkbox" class="statFilter" value="deathDamage"> deathDamage</label>
+        <div class="stat-group-header" tabindex="0" role="button" aria-expanded="true">
+          <strong>Elemental Damage</strong>
+          <span class="chev" aria-hidden="true">▾</span>
+        </div>
+        <div class="stat-group-content">
+          <div class="stat-box">
+            <label><input type="checkbox" class="statFilter" value="fireDamage"> fireDamage</label>
+            <label><input type="checkbox" class="statFilter" value="iceDamage"> iceDamage</label>
+            <label><input type="checkbox" class="statFilter" value="earthDamage"> earthDamage</label>
+            <label><input type="checkbox" class="statFilter" value="holyDamage"> holyDamage</label>
+            <label><input type="checkbox" class="statFilter" value="deathDamage"> deathDamage</label>
+          </div>
         </div>
       </div>
   
       <div class="stat-group">
-        <strong>Utility</strong><br>
-        <div class="stat-box">
-          <label><input type="checkbox" class="statFilter" value="speed"> speed</label>
-          <label><input type="checkbox" class="statFilter" value="range"> range</label>
-          <label><input type="checkbox" class="statFilter" value="manaCost"> manaCost</label>
-          <label><input type="checkbox" class="statFilter" value="manaPerShot"> manaPerShot</label>
-          <label><input type="checkbox" class="statFilter" value="lifeLeech"> lifeLeech</label>
-          <label><input type="checkbox" class="statFilter" value="manaLeech"> manaLeech</label>
+        <div class="stat-group-header" tabindex="0" role="button" aria-expanded="true">
+          <strong>Utility</strong>
+          <span class="chev" aria-hidden="true">▾</span>
+        </div>
+        <div class="stat-group-content">
+          <div class="stat-box">
+            <label><input type="checkbox" class="statFilter" value="speed"> speed</label>
+            <label><input type="checkbox" class="statFilter" value="range"> range</label>
+            <label><input type="checkbox" class="statFilter" value="manaCost"> manaCost</label>
+            <label><input type="checkbox" class="statFilter" value="manaPerShot"> manaPerShot</label>
+            <label><input type="checkbox" class="statFilter" value="lifeLeech"> lifeLeech</label>
+            <label><input type="checkbox" class="statFilter" value="manaLeech"> manaLeech</label>
+          </div>
         </div>
       </div>
     </div>
@@ -540,6 +743,9 @@
       zoneSearch: document.getElementById("zoneSearch"),
       minLevel: document.getElementById("minLevel"),
       maxLevel: document.getElementById("maxLevel"),
+      minDamageFilter: document.getElementById("minDamageFilter"),
+      maxDamageFilter: document.getElementById("maxDamageFilter"),
+      clearFiltersBtn: document.getElementById("clearFiltersBtn"),
       vocationFilters: document.getElementById("vocationFilters"),
       typeFilter: document.getElementById("typeFilter")
     };
@@ -675,6 +881,15 @@
             if (!(stat in stats)) return false;
           }
         }
+
+        /* DAMAGE RANGE FILTER */
+        const minD = parseInt(els.minDamageFilter?.value || "0", 10);
+        const maxD = parseInt(els.maxDamageFilter?.value || "0", 10);
+        const stats = item.stats || {};
+        const itemMinD = stats.minDamage ?? stats.maxDamage ?? 0;
+        const itemMaxD = stats.maxDamage ?? stats.minDamage ?? 0;
+        if (!Number.isNaN(minD) && minD > 0 && itemMaxD < minD) return false;
+        if (!Number.isNaN(maxD) && maxD > 0 && itemMinD > maxD) return false;
     
         return true;
       });
@@ -743,10 +958,16 @@
         meta.appendChild(lvl);
     
         if (Array.isArray(item.requiredVocations) && item.requiredVocations.length) {
-          const voc = document.createElement("span");
-          voc.className = "pill pill-accent";
-          voc.textContent = item.requiredVocations.join(", ");
-          meta.appendChild(voc);
+          item.requiredVocations.forEach(v => {
+            const vocSpan = document.createElement("span");
+            // map vocation text to classname used by CSS (knight, sorcerer, druid, paladin)
+            const slug = v.toLowerCase().trim().replace(/\s+/g, '-');
+            const known = ['knight','sorcerer','druid','paladin'];
+            const cls = known.includes(slug) ? slug : '';
+            vocSpan.className = cls ? `pill voc-pill ${cls}` : 'pill voc-pill';
+            vocSpan.textContent = v;
+            meta.appendChild(vocSpan);
+          });
         }
     
         main.appendChild(name);
@@ -777,7 +998,7 @@
         return;
       }
     
-      const vocs = Array.isArray(item.requiredVocations) ? item.requiredVocations.join(", ") : "Any";
+      const vocs = Array.isArray(item.requiredVocations) && item.requiredVocations.length ? item.requiredVocations.join(", ") : null;
       const stats = item.stats || {};
       const drops = Array.isArray(item.droppedBy) ? item.droppedBy : [];
     
@@ -806,13 +1027,17 @@
     
       const sub = document.createElement("div");
       sub.className = "details-sub";
-      sub.innerHTML = `
+      // build badges; don't render vocation badge if there are no required vocations
+      let badgesHtml = `
         <span class="badge">${item.type || item.primaryType || "Unknown type"}</span>
         <span class="badge">Level ${item.levelRequired || 0}</span>
-        <span class="badge">${vocs}</span>
+      `;
+      if (vocs) badgesHtml += `<span class="badge">${vocs}</span>`;
+      badgesHtml += `
         <span class="badge">Weight: ${item.weightOz ?? "?"} oz</span>
         <span class="badge">Value: ${item.value ?? 0} gp</span>
       `;
+      sub.innerHTML = badgesHtml;
     
       main.appendChild(name);
       main.appendChild(sub);
@@ -918,7 +1143,59 @@
     els.zoneSearch.addEventListener("input", applyFilters);
     els.minLevel.addEventListener("input", applyFilters);
     els.maxLevel.addEventListener("input", applyFilters);
+    if (els.minDamageFilter) els.minDamageFilter.addEventListener("input", applyFilters);
+    if (els.maxDamageFilter) els.maxDamageFilter.addEventListener("input", applyFilters);
     
+    function setupAccordions() {
+      document.querySelectorAll('.stat-group').forEach(group => {
+        const header = group.querySelector('.stat-group-header');
+        const content = group.querySelector('.stat-group-content');
+        if (!header || !content) return;
+        // start collapsed by default and disable inner controls
+        group.classList.add('collapsed');
+        header.setAttribute('aria-expanded', 'false');
+        content.querySelectorAll('input,select,button').forEach(el => el.disabled = true);
+
+        header.addEventListener('click', () => {
+          const closed = group.classList.toggle('collapsed');
+          header.setAttribute('aria-expanded', String(!closed));
+          // enable/disable inputs inside content so they aren't interactive when collapsed
+          content.querySelectorAll('input,select,button').forEach(el => el.disabled = closed);
+        });
+        header.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            header.click();
+          }
+        });
+      });
+    }
+
+    // Call setup immediately so UI is interactive on load
+    setupAccordions();
+    // wire clear button
+    function clearFilters() {
+      // clear text inputs
+      els.search.value = '';
+      els.zoneSearch.value = '';
+      // clear numeric ranges
+      if (els.minLevel) els.minLevel.value = '';
+      if (els.maxLevel) els.maxLevel.value = '';
+      if (els.minDamageFilter) els.minDamageFilter.value = '';
+      if (els.maxDamageFilter) els.maxDamageFilter.value = '';
+      // clear select
+      if (els.typeFilter) els.typeFilter.value = '';
+      // clear vocation chips
+      state.activeVocations.clear();
+      document.querySelectorAll('.vocations input').forEach(i => { i.checked = false; i.parentElement.classList.remove('active'); });
+      // clear stat filters
+      state.activeStats.clear();
+      document.querySelectorAll('.statFilter').forEach(cb => cb.checked = false);
+      applyFilters();
+    }
+
+    if (els.clearFiltersBtn) els.clearFiltersBtn.addEventListener('click', clearFilters);
+
     loadItems();
   </script>
 </body>
