@@ -2,42 +2,41 @@ const https = require("https");
 const fs = require("fs");
 const path = require("path");
 
-function fetchHtml(url) {
+function fetchJson(url) {
   return new Promise((resolve, reject) => {
     https.get(url, res => {
       let data = "";
       res.on("data", chunk => (data += chunk));
-      res.on("end", () => resolve(data));
+      res.on("end", () => {
+        try {
+          resolve(JSON.parse(data));
+        } catch (err) {
+          reject(err);
+        }
+      });
     }).on("error", reject);
   });
 }
 
 async function main() {
-  const url = "https://www.tibidler.com";
+  const url = "https://www.tibidler.com/data/dailyBoosts.json";
   console.log("Fetching:", url);
-  const html = await fetchHtml(url);
 
-  // Normalize whitespace
-  const clean = html.replace(/\s+/g, " ");
+  const data = await fetchJson(url);
 
-  // Extract monster
-  const monsterMatch = clean.match(/Monster<\/[^>]+>\s*<[^>]+>\s*([^<]+)/i);
-  const bossMatch = clean.match(/Boss<\/[^>]+>\s*<[^>]+>\s*([^<]+)/i);
-
-  // Extract bonuses
-  const bonusMatches = [...clean.matchAll(/(\dx EXP\s*·\s*\dx loot)/g)].map(m => m[1]);
-
-  const data = {
+  const output = {
     fetchedAt: new Date().toISOString(),
     source: url,
-    monster: monsterMatch ? monsterMatch[1].trim() : null,
-    boss: bossMatch ? bossMatch[1].trim() : null,
-    monsterBonus: bonusMatches[0] || null,
-    bossBonus: bonusMatches[1] || null
+    monster: data.monster?.name || null,
+    boss: data.boss?.name || null,
+    monsterBonus: `${data.monster?.expMultiplier || 2}x EXP · ${data.monster?.lootRolls || 2}x loot`,
+    bossBonus: `${data.boss?.expMultiplier || 2}x EXP · ${data.boss?.lootRolls || 2}x loot`,
+    nextResetAt: data.nextResetAt || null
   };
 
-  const outPath = path.join(__dirname, "boosted.json");
-  fs.writeFileSync(outPath, JSON.stringify(data, null, 2));
+  const outPath = path.join(__dirname, "..", "boosted.json");
+  fs.writeFileSync(outPath, JSON.stringify(output, null, 2));
+
   console.log("Written:", outPath);
 }
 
