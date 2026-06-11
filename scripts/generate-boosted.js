@@ -11,7 +11,7 @@ function fetchJson(url) {
         try {
           resolve(JSON.parse(data));
         } catch (err) {
-          reject(err);
+          reject("Failed to parse JSON: " + err);
         }
       });
     }).on("error", reject);
@@ -24,23 +24,28 @@ async function main() {
 
   const data = await fetchJson(url);
 
+  if (!data || !data.monster || !data.boss) {
+    throw new Error("dailyBoosts.json did not contain expected fields");
+  }
+
   const output = {
     fetchedAt: new Date().toISOString(),
     source: url,
-    monster: data.monster?.name || null,
-    boss: data.boss?.name || null,
-    monsterBonus: `${data.monster?.expMultiplier || 2}x EXP · ${data.monster?.lootRolls || 2}x loot`,
-    bossBonus: `${data.boss?.expMultiplier || 2}x EXP · ${data.boss?.lootRolls || 2}x loot`,
-    nextResetAt: data.nextResetAt || null
+    monster: data.monster.name,
+    boss: data.boss.name,
+    monsterBonus: `${data.monster.expMultiplier}x EXP · ${data.monster.lootRolls}x loot`,
+    bossBonus: `${data.boss.expMultiplier}x EXP · ${data.boss.lootRolls}x loot`,
+    nextResetAt: data.nextResetAt
   };
 
-  const outPath = path.join(__dirname, "..", "boosted.json");
+  const outPath = path.join(process.cwd(), "boosted.json");
   fs.writeFileSync(outPath, JSON.stringify(output, null, 2));
 
   console.log("Written:", outPath);
 }
 
 main().catch(err => {
-  console.error("Script failed:", err);
+  console.error("Script failed with error:");
+  console.error(err);
   process.exit(1);
 });
