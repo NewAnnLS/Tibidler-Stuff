@@ -133,10 +133,11 @@
       background: #020617;
       border-radius: 999px;
       border: 1px solid var(--border);
-      padding: 6px 10px;
+      padding: 8px 14px;
       color: var(--text);
-      font-size: 13px;
+      font-size: 12px;
       outline: none;
+      font-family: inherit;
     }
     input[type="text"]:focus,
     input[type="number"]:focus,
@@ -154,10 +155,19 @@
       background-size: 6px 6px, 6px 6px;
       background-repeat: no-repeat;
     }
+    /* placeholder look for select elements to match pill/muted text */
+    .select-placeholder { color: var(--muted); }
+    /* specific snapshot select tweaks: keep muted, padded and rounded */
+    #snapshotSelect { color: var(--muted); font-size: 12px; padding: 8px 14px; border-radius: 999px; }
+    /* make options and the select more consistent and padded */
+    select option { font-size: 12px; padding: 8px 12px; }
+    /* keep the select pill-shaped */
+    select { border-radius: 999px; }
     .vocations {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
+      justify-content: center;
     }
     .filters-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
     .filters-actions { display:flex; gap:8px; align-items:center; }
@@ -382,6 +392,7 @@
       margin-left: 6px;
       white-space: nowrap;
     }
+
     .drops-list {
       display: flex;
       flex-direction: column;
@@ -415,12 +426,17 @@
     }
     .level-range { display:flex; gap:8px; align-items:center; justify-content:center; }
     .level-sep { color: var(--muted); font-size: 14px; padding: 0 4px; }
+
     .stat-group {
       margin-bottom: 10px;
-      border: 1px solid var(--border);
+      border: 1px solid rgba(255,255,255,0.04);
       border-radius: 6px;
       overflow: hidden;
       background: transparent;
+    }
+    .pill.active {
+      box-shadow: 0 6px 18px rgba(0,0,0,0.32);
+      transform: translateY(-1px);
     }
 
     .stat-group strong {
@@ -525,6 +541,13 @@
       <img src="assets/custom/ToKlogo.gif" alt="ToKlogo" width="32" style="image-rendering: pixelated; border-radius:6px;">
       Tibidler Items
       <span>GitHub preview</span>
+      <span style="color:var(--muted); margin:0 8px;">|</span>
+      <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);">
+        <select id="snapshotSelect" disabled style="min-width:180px;">
+          <option>Loading...</option>
+        </select>
+        <button id="loadSnapshotBtn" class="chip" title="Load local JSON" style="display:none;">Load</button>
+      </label>
     </h1>
     <div style="font-size:12px;color:var(--muted);">
       <span id="totalCount">0</span> items ·
@@ -539,6 +562,11 @@
       <h2>Filters</h2>
       <div class="filters-actions">
         <button id="clearFiltersBtn" class="clear-btn" title="Clear all filters">Clear</button>
+      </div>
+    </div>
+    <div class="field">
+      <div class="stat-box" style="grid-template-columns: 1fr;">
+        <label><input type="checkbox" id="droppedFilter"> Obtainable</label>
       </div>
     </div>
   
@@ -560,12 +588,15 @@
       <div class="vocations" id="vocationFilters"></div>
     </div>
   
-    <!-- Type filter -->
-    <div class="field">
-      <label for="typeFilter">Item type</label>
-      <select id="typeFilter">
-        <option value="">Any</option>
-      </select>
+    <!-- Type filter (expandable, multiple selection) -->
+    <div class="stat-group">
+      <div class="stat-group-header" tabindex="0" role="button" aria-expanded="true">
+        <strong>Item type</strong>
+        <span class="chev" aria-hidden="true">▾</span>
+      </div>
+      <div class="stat-group-content">
+        <div id="typeFilterContainer" class="stat-box"></div>
+      </div>
     </div>
   
     <!-- Level range -->
@@ -591,7 +622,7 @@
       <label>Stats</label>
   
       <div class="stat-group">
-        <div class="stat-group-header" tabindex="0" role="button" aria-expanded="true">
+        <div class="stat-group-header" tabindex="0" role="button" aria-expanded="false">
           <strong>Offensive</strong>
           <span class="chev" aria-hidden="true">▾</span>
         </div>
@@ -615,7 +646,7 @@
       </div>
   
       <div class="stat-group">
-        <div class="stat-group-header" tabindex="0" role="button" aria-expanded="true">
+        <div class="stat-group-header" tabindex="0" role="button" aria-expanded="false">
           <strong>Defensive</strong>
           <span class="chev" aria-hidden="true">▾</span>
         </div>
@@ -631,7 +662,7 @@
       </div>
   
       <div class="stat-group">
-        <div class="stat-group-header" tabindex="0" role="button" aria-expanded="true">
+        <div class="stat-group-header" tabindex="0" role="button" aria-expanded="false">
           <strong>Magic</strong>
           <span class="chev" aria-hidden="true">▾</span>
         </div>
@@ -650,7 +681,7 @@
       </div>
   
       <div class="stat-group">
-        <div class="stat-group-header" tabindex="0" role="button" aria-expanded="true">
+        <div class="stat-group-header" tabindex="0" role="button" aria-expanded="false">
           <strong>Elemental Protections</strong>
           <span class="chev" aria-hidden="true">▾</span>
         </div>
@@ -670,7 +701,7 @@
       </div>
   
       <div class="stat-group">
-        <div class="stat-group-header" tabindex="0" role="button" aria-expanded="true">
+        <div class="stat-group-header" tabindex="0" role="button" aria-expanded="false">
           <strong>Elemental Damage</strong>
           <span class="chev" aria-hidden="true">▾</span>
         </div>
@@ -686,7 +717,7 @@
       </div>
   
       <div class="stat-group">
-        <div class="stat-group-header" tabindex="0" role="button" aria-expanded="true">
+        <div class="stat-group-header" tabindex="0" role="button" aria-expanded="false">
           <strong>Utility</strong>
           <span class="chev" aria-hidden="true">▾</span>
         </div>
@@ -731,7 +762,8 @@
       vocations: new Set(),
       activeVocations: new Set(),
       types: new Set(),
-      activeStats: new Set()
+      activeStats: new Set(),
+      activeTypes: new Set()
     };
     
     const els = {
@@ -747,29 +779,12 @@
       minDamageFilter: document.getElementById("minDamageFilter"),
       maxDamageFilter: document.getElementById("maxDamageFilter"),
       clearFiltersBtn: document.getElementById("clearFiltersBtn"),
+      droppedFilter: document.getElementById("droppedFilter"),
+      snapshotSelect: document.getElementById("snapshotSelect"),
+      loadSnapshotBtn: document.getElementById("loadSnapshotBtn"),
       vocationFilters: document.getElementById("vocationFilters"),
-      typeFilter: document.getElementById("typeFilter")
+      typeFilterContainer: document.getElementById("typeFilterContainer")
     };
-    
-    async function loadItems() {
-      const res = await fetch("items.json");
-      const items = await res.json();
-      state.items = items;
-      state.filtered = items;
-    
-      // collect vocations and types
-      items.forEach(item => {
-        if (Array.isArray(item.requiredVocations)) {
-          item.requiredVocations.forEach(v => state.vocations.add(v));
-        }
-        if (item.type) state.types.add(item.type);
-      });
-    
-      renderVocationFilters();
-      renderTypeFilter();
-      renderList();
-      updateCounts();
-    }
     
     /* ------------------------------
        VOCATION FILTERS
@@ -783,35 +798,76 @@
         return;
       }
       all.forEach(voc => {
-        const chip = document.createElement("label");
-        chip.className = "chip";
-        chip.innerHTML = `<input type="checkbox" value="${voc}">${voc}`;
-        const input = chip.querySelector("input");
-    
-        input.addEventListener("change", () => {
-          if (input.checked) state.activeVocations.add(voc);
-          else state.activeVocations.delete(voc);
-          chip.classList.toggle("active", input.checked);
+        const slug = voc.toLowerCase().trim().replace(/\s+/g, '-');
+        const known = ['knight','sorcerer','druid','paladin'];
+        const cls = known.includes(slug) ? slug : '';
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'pill voc-pill';
+        btn.textContent = voc;
+        btn.dataset.voc = voc;
+        btn.tabIndex = 0;
+        // reflect initial state
+        const active = state.activeVocations.has(voc);
+        if (active) {
+          btn.classList.add('active');
+          if (cls) btn.classList.add(cls);
+          btn.setAttribute('aria-pressed', 'true');
+        } else {
+          btn.setAttribute('aria-pressed', 'false');
+        }
+
+        btn.addEventListener('click', () => {
+          const isActive = btn.classList.toggle('active');
+          if (isActive) {
+            state.activeVocations.add(voc);
+            if (cls) btn.classList.add(cls);
+            btn.setAttribute('aria-pressed', 'true');
+          } else {
+            state.activeVocations.delete(voc);
+            if (cls) btn.classList.remove(cls);
+            btn.setAttribute('aria-pressed', 'false');
+          }
           applyFilters();
         });
-    
-        container.appendChild(chip);
+
+        btn.addEventListener('keydown', (e) => {
+          if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault();
+            btn.click();
+          }
+        });
+
+        container.appendChild(btn);
       });
     }
     
     /* ------------------------------
-       TYPE FILTER
+       TYPE FILTER (checkboxes)
     ------------------------------ */
     function renderTypeFilter() {
-      const select = els.typeFilter;
+      const container = els.typeFilterContainer;
+      container.innerHTML = '';
       const types = Array.from(state.types).sort();
+      if (!types.length) {
+        container.innerHTML = '<span class="empty">No types</span>';
+        return;
+      }
       types.forEach(t => {
-        const opt = document.createElement("option");
-        opt.value = t;
-        opt.textContent = t;
-        select.appendChild(opt);
+        const label = document.createElement('label');
+        label.style.cursor = 'pointer';
+        label.innerHTML = `<input type="checkbox" value="${t}">${t}`;
+        const input = label.querySelector('input');
+        // if parent group is collapsed, keep inputs disabled until expanded
+        const parentGroup = container.closest('.stat-group');
+        if (parentGroup && parentGroup.classList.contains('collapsed')) input.disabled = true;
+        input.addEventListener('change', () => {
+          if (input.checked) state.activeTypes.add(t);
+          else state.activeTypes.delete(t);
+          applyFilters();
+        });
+        container.appendChild(label);
       });
-      select.addEventListener("change", applyFilters);
     }
     
     /* ------------------------------
@@ -823,8 +879,8 @@
       const minLevel = parseInt(els.minLevel.value || "0", 10);
       const maxLevel = parseInt(els.maxLevel.value || "0", 10);
       const activeVocs = state.activeVocations;
-      const typeFilter = els.typeFilter.value;
       const activeStats = state.activeStats;
+      const dropOnly = els.droppedFilter && els.droppedFilter.checked;
     
       state.filtered = state.items.filter(item => {
         /* NAME SEARCH */
@@ -862,8 +918,8 @@
         if (!Number.isNaN(minLevel) && minLevel > 0 && lvl < minLevel) return false;
         if (!Number.isNaN(maxLevel) && maxLevel > 0 && lvl > maxLevel) return false;
     
-        /* TYPE FILTER */
-        if (typeFilter && item.type !== typeFilter) return false;
+        /* TYPE FILTER (multiple) */
+        if (state.activeTypes.size && !state.activeTypes.has(item.type)) return false;
     
         /* VOCATION FILTER */
         if (activeVocs.size) {
@@ -892,6 +948,11 @@
         if (!Number.isNaN(minD) && minD > 0 && itemMaxD < minD) return false;
         if (!Number.isNaN(maxD) && maxD > 0 && itemMinD > maxD) return false;
     
+        /* DROPPED BY FILTER */
+        if (dropOnly) {
+          if (!Array.isArray(item.droppedBy) || item.droppedBy.length === 0) return false;
+        }
+
         return true;
       });
     
@@ -915,17 +976,33 @@
     ------------------------------ */
     function renderList() {
       const container = els.results;
+      
+      // If list is already rendered, just update selection classes
+      if (container.children.length === state.filtered.length) {
+        document.querySelectorAll('.item-card').forEach(card => {
+          const itemKey = card.dataset.itemKey;
+          if (itemKey === state.selectedKey) {
+            card.classList.add('selected');
+          } else {
+            card.classList.remove('selected');
+          }
+        });
+        return;
+      }
+      
+      // First render: build all cards
       container.innerHTML = "";
       if (!state.filtered.length) {
         container.innerHTML = '<p class="empty">No items match current filters.</p>';
         return;
       }
-    
+
       state.filtered.forEach(item => {
         const card = document.createElement("article");
         card.className = "item-card";
+        card.dataset.itemKey = item.key;
         if (item.key === state.selectedKey) card.classList.add("selected");
-    
+
         const sprite = document.createElement("div");
         sprite.className = "item-sprite";
         if (item.sprite) {
@@ -936,32 +1013,35 @@
         } else {
           sprite.textContent = "?";
         }
-    
+
         const main = document.createElement("div");
         main.className = "item-main";
-    
+
         const name = document.createElement("div");
         name.className = "item-name";
         name.textContent = item.name;
-    
+
         const meta = document.createElement("div");
         meta.className = "item-meta";
-    
+
         const type = document.createElement("span");
         type.className = "pill";
         type.textContent = item.type || item.primaryType || "Unknown";
-    
+
         const lvl = document.createElement("span");
         lvl.className = "pill";
-        lvl.textContent = `Lvl ${item.levelRequired || 0}`;
-    
-        meta.appendChild(type);
-        meta.appendChild(lvl);
-    
+        const levelVal = Number(item.levelRequired || 0);
+        if (levelVal > 0) {
+          lvl.textContent = `Lvl ${levelVal}`;
+          meta.appendChild(type);
+          meta.appendChild(lvl);
+        } else {
+          meta.appendChild(type);
+        }
+
         if (Array.isArray(item.requiredVocations) && item.requiredVocations.length) {
           item.requiredVocations.forEach(v => {
             const vocSpan = document.createElement("span");
-            // map vocation text to classname used by CSS (knight, sorcerer, druid, paladin)
             const slug = v.toLowerCase().trim().replace(/\s+/g, '-');
             const known = ['knight','sorcerer','druid','paladin'];
             const cls = known.includes(slug) ? slug : '';
@@ -970,22 +1050,22 @@
             meta.appendChild(vocSpan);
           });
         }
-    
+
         main.appendChild(name);
         main.appendChild(meta);
-    
+
         card.appendChild(sprite);
         card.appendChild(main);
-    
+
         card.addEventListener("click", () => {
           state.selectedKey = item.key;
           renderList();
           renderDetails(item);
         });
-    
+
         container.appendChild(card);
       });
-    
+
       els.resultsInfo.textContent = `${state.filtered.length} item(s)`;
     }
     
@@ -1031,8 +1111,10 @@
       // build badges; don't render vocation badge if there are no required vocations
       let badgesHtml = `
         <span class="badge">${item.type || item.primaryType || "Unknown type"}</span>
-        <span class="badge">Level ${item.levelRequired || 0}</span>
       `;
+      if (Number(item.levelRequired || 0) > 0) {
+        badgesHtml += `<span class="badge">Level ${item.levelRequired}</span>`;
+      }
       if (vocs) badgesHtml += `<span class="badge">${vocs}</span>`;
       badgesHtml += `
         <span class="badge">Weight: ${item.weightOz ?? "?"} oz</span>
@@ -1100,9 +1182,14 @@
         list.className = "drops-list";
         drops.forEach(d => {
           const div = document.createElement("div");
-          div.className = "drop";
-          const chance = d.chance != null ? (d.chance * 100).toFixed(2) + "%" : "unknown";
-          const rarity = d.rarity || "unknown rarity";
+              div.className = "drop";
+                    const formatPct = (v) => {
+                      const n = Number(v);
+                      if (Number.isNaN(n)) return String(v);
+                      return n.toFixed(4).replace(/\.?0+$/, '') + '%';
+                    };
+              const chance = d.chance != null ? formatPct(d.chance) : "unknown";
+              const rarity = d.rarity || "unknown rarity";
           const zones = (d.zoneNames || d.zones?.map(z => z.zone) || []).join(", ");
           div.innerHTML = `
             <div><strong>${d.monster}</strong> <span style="color:var(--muted)">(${rarity}, ${chance})</span></div>
@@ -1152,10 +1239,17 @@
         const header = group.querySelector('.stat-group-header');
         const content = group.querySelector('.stat-group-content');
         if (!header || !content) return;
-        // start collapsed by default and disable inner controls
-        group.classList.add('collapsed');
-        header.setAttribute('aria-expanded', 'false');
-        content.querySelectorAll('input,select,button').forEach(el => el.disabled = true);
+        // respect initial aria-expanded on headers; collapse if not explicitly open
+        const startOpen = header.getAttribute('aria-expanded') === 'true';
+        if (!startOpen) {
+          group.classList.add('collapsed');
+          header.setAttribute('aria-expanded', 'false');
+          content.querySelectorAll('input,select,button').forEach(el => el.disabled = true);
+        } else {
+          group.classList.remove('collapsed');
+          header.setAttribute('aria-expanded', 'true');
+          content.querySelectorAll('input,select,button').forEach(el => el.disabled = false);
+        }
 
         header.addEventListener('click', () => {
           const closed = group.classList.toggle('collapsed');
@@ -1184,11 +1278,17 @@
       if (els.maxLevel) els.maxLevel.value = '';
       if (els.minDamageFilter) els.minDamageFilter.value = '';
       if (els.maxDamageFilter) els.maxDamageFilter.value = '';
-      // clear select
-      if (els.typeFilter) els.typeFilter.value = '';
+      // clear type checkboxes
+      state.activeTypes.clear();
+      if (els.typeFilterContainer) els.typeFilterContainer.querySelectorAll('input').forEach(i => { i.checked = false; });
       // clear vocation chips
       state.activeVocations.clear();
-      document.querySelectorAll('.vocations input').forEach(i => { i.checked = false; i.parentElement.classList.remove('active'); });
+      const knownVocs = ['knight','sorcerer','druid','paladin'];
+      document.querySelectorAll('.vocations .voc-pill').forEach(btn => {
+        btn.classList.remove('active');
+        btn.removeAttribute('aria-pressed');
+        knownVocs.forEach(k => btn.classList.remove(k));
+      });
       // clear stat filters
       state.activeStats.clear();
       document.querySelectorAll('.statFilter').forEach(cb => cb.checked = false);
@@ -1196,8 +1296,179 @@
     }
 
     if (els.clearFiltersBtn) els.clearFiltersBtn.addEventListener('click', clearFilters);
+    if (els.droppedFilter) els.droppedFilter.addEventListener('change', applyFilters);
 
-    loadItems();
+    // hidden file input for local JSON loading
+    const _fileInput = document.createElement('input');
+    _fileInput.type = 'file';
+    _fileInput.accept = '.json,application/json';
+    _fileInput.style.display = 'none';
+    document.body.appendChild(_fileInput);
+
+    _fileInput.addEventListener('change', async (e) => {
+      const f = e.target.files && e.target.files[0];
+      if (!f) return;
+      try {
+        const txt = await f.text();
+        const json = JSON.parse(txt);
+        switchItems(json, f.name);
+      } catch (err) {
+        alert('Failed to load JSON file: ' + err.message);
+      }
+      _fileInput.value = '';
+    });
+
+    // populate snapshot dropdown by attempting to read a manifest in itemSnapshots/
+    async function populateSnapshotSelect(list) {
+      const sel = els.snapshotSelect;
+      sel.innerHTML = '';
+      if (!Array.isArray(list) || !list.length) {
+        const opt = document.createElement('option');
+        opt.textContent = 'No snapshots found!';
+        opt.value = '';
+        opt.disabled = true;
+        sel.appendChild(opt);
+        sel.disabled = true;
+        return;
+      }
+
+      // Parse date-like prefixes from filenames (e.g. 2026-06-18.json or 20260618.json)
+      const parsed = list.map(fn => {
+        const name = fn;
+        // try patterns YYYY-MM-DD or YYYY_MM_DD or YYYYMMDD
+        const m1 = name.match(/(\d{4})[-_](\d{2})[-_](\d{2})/);
+        const m2 = name.match(/(\d{4})(\d{2})(\d{2})/);
+        let ts = null;
+        if (m1) {
+          ts = Date.parse(`${m1[1]}-${m1[2]}-${m1[3]}`);
+        } else if (m2) {
+          ts = Date.parse(`${m2[1]}-${m2[2]}-${m2[3]}`);
+        }
+        return { name, ts };
+      });
+
+      // sort: files with parsed dates first (newest->oldest), then others by name desc
+      parsed.sort((a, b) => {
+        if (a.ts && b.ts) return b.ts - a.ts;
+        if (a.ts && !b.ts) return -1;
+        if (!a.ts && b.ts) return 1;
+        return b.name.localeCompare(a.name);
+      });
+
+      // when there are parsed files, just add them and auto-select the newest
+      parsed.forEach(p => {
+        const o = document.createElement('option');
+        o.value = p.name;
+        o.textContent = p.name;
+        sel.appendChild(o);
+      });
+
+      sel.disabled = false;
+      // keep the select text muted/consistent instead of switching styles
+      sel.style.color = 'var(--muted)';
+
+      // set change handler (use onchange to avoid multiple listeners)
+      sel.onchange = async () => {
+        const v = sel.value;
+        if (!v) return;
+        // keep select text muted even after selection
+        sel.style.color = 'var(--muted)';
+        await loadSnapshotFromItemSnapshots(v);
+      };
+
+      // auto-select and load the newest file (first in sorted list)
+      const newest = parsed[0];
+      if (newest) {
+        sel.value = newest.name;
+        // fire load asynchronously (don't await here during initialization)
+        loadSnapshotFromItemSnapshots(newest.name);
+      }
+    }
+    
+
+    async function tryFetchDirectoryListing() {
+      const sel = els.snapshotSelect;
+      try {
+        const res = await fetch('itemSnapshots/');
+        if (!res.ok) throw new Error('no index');
+        const ct = res.headers.get('content-type') || '';
+        const text = await res.text();
+
+        // If server returns HTML directory listing, parse anchors
+        if (ct.includes('text/html') || text.includes('<a')) {
+          try {
+            const doc = new DOMParser().parseFromString(text, 'text/html');
+            const anchors = Array.from(doc.querySelectorAll('a'));
+            const files = anchors.map(a => a.getAttribute('href'))
+              .filter(h => h && h.toLowerCase().endsWith('.json'))
+              .map(h => {
+                // strip possible leading paths
+                const parts = h.split('/');
+                return parts[parts.length - 1];
+              });
+            const unique = Array.from(new Set(files));
+            if (unique.length) {
+              populateSnapshotSelect(unique);
+              els.loadSnapshotBtn.style.display = 'none';
+              return;
+            }
+          } catch (e) {
+            // parsing failed, fall through to fallback
+          }
+        }
+      } catch (e) {
+        // fetch failed or no listing available
+      }
+
+      // Fallback: directory listing not available — enable Load fallback
+      sel.innerHTML = '';
+      const opt = document.createElement('option');
+      opt.textContent = 'No snapshots available';
+      sel.appendChild(opt);
+      sel.disabled = true;
+      els.loadSnapshotBtn.style.display = '';
+    }
+
+    async function loadSnapshotFromItemSnapshots(filename) {
+      try {
+        const res = await fetch('itemSnapshots/' + filename);
+        if (!res.ok) throw new Error('Failed to fetch ' + filename + ' (' + res.status + ')');
+        const j = await res.json();
+        switchItems(j, filename);
+      } catch (err) {
+        alert('Unable to load snapshot: ' + err.message);
+      }
+    }
+
+    function switchItems(items, label) {
+      if (!Array.isArray(items)) { alert('Snapshot did not contain an array of items.'); return; }
+      state.items = items;
+      state.filtered = items.slice();
+      state.vocations.clear();
+      state.types.clear();
+      items.forEach(item => {
+        if (Array.isArray(item.requiredVocations)) item.requiredVocations.forEach(v => state.vocations.add(v));
+        if (item.type) state.types.add(item.type);
+      });
+      renderVocationFilters();
+      // clear and re-render type checkboxes
+      if (els.typeFilterContainer) els.typeFilterContainer.innerHTML = '';
+      renderTypeFilter();
+      renderList();
+      updateCounts();
+      state.selectedKey = null;
+      els.details.innerHTML = '<p class="empty">Select an item from the list to see full details.</p>';
+    }
+
+    // wire load button
+    if (els.loadSnapshotBtn) {
+      els.loadSnapshotBtn.addEventListener('click', () => _fileInput.click());
+    }
+
+    // populate snapshot select on startup by attempting a directory listing.
+    // This lets the page automatically pick up any new .json files placed into
+    // `itemSnapshots/` without requiring a manifest.
+    tryFetchDirectoryListing();
   </script>
 </body>
 </html>
